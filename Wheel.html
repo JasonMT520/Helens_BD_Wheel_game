@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helen's Birthday Lucky Wheel 🎁</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #ffe5ec, #ffc2d1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 背景動態漂浮愛心 */
+        .heart-particle {
+            position: absolute;
+            color: rgba(255, 71, 126, 0.3);
+            font-size: 20px;
+            pointer-events: none;
+            animation: floatUp 6s linear infinite;
+            z-index: 0;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        .card {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 24px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 440px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        h2 { 
+            color: #ff477e; 
+            margin-top: 0;
+            font-size: 24px;
+        }
+
+        /* 輪盤外殼與指針容器 */
+        .wheel-container {
+            position: relative;
+            width: 290px;
+            height: 290px;
+            margin: 25px auto;
+        }
+
+        /* 輪盤本體 */
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 6px solid #ff7096;
+            box-shadow: 0 8px 20px rgba(255, 112, 150, 0.2);
+            transition: transform 4s cubic-bezier(0.1, 0.75, 0.1, 1);
+            display: block;
+        }
+
+        /* 上方正中央箭頭指針 */
+        .pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 28px solid #ff477e;
+            z-index: 10;
+        }
+
+        /* 📋 獎品列表樣式 */
+        .prize-list {
+            text-align: left;
+            background: #fff5f7;
+            padding: 15px;
+            border-radius: 16px;
+            border: 1px dashed #ffb3c6;
+            margin-top: 20px;
+        }
+        .prize-item {
+            font-size: 14px;
+            color: #4a4a4a;
+            margin: 8px 0;
+            line-height: 1.4;
+            display: flex;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+            padding: 4px;
+        }
+        .prize-num {
+            font-weight: bold;
+            color: #ff477e;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+        /* 中獎項目高亮 */
+        .highlight-prize {
+            background-color: #ffccd5;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .btn {
+            background-color: #ff7096;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            margin-top: 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%; 
+            transition: transform 0.2s, background-color 0.3s;
+            box-shadow: 0 4px 10px rgba(255, 112, 150, 0.3);
+        }
+        .btn:active { 
+            transform: scale(0.98); 
+        }
+
+        /* 🎁 經典華麗版中獎彈窗 */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: white;
+            padding: 35px 25px 30px 25px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            z-index: 100;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+        .popup.show {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        /* ❌ 右上角叉叉按鈕 */
+        .close-x {
+            position: absolute;
+            top: 14px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff7096;
+            cursor: pointer;
+            transition: color 0.2s;
+            user-select: none;
+        }
+        .close-x:hover {
+            color: #ff477e;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.4);
+            z-index: 90;
+        }
+        .overlay.show { display: block; }
+        
+        #prize-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ff477e;
+            margin-top: 5px;
+        }
+        #prize-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+            line-height: 1.4;
+            background: #fff0f3;
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px dashed #ff7096;
+        }
+        .popup p {
+            color: #4a4a4a;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="card">
+        <h2>🎁 Helen's Birthday Lucky Wheel</h2>
+        <p>Congratulations on passing the challenge, my baby! Now, it's time to spin for your real birthday gift! 👑✨</p>
+        
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <svg id="wheel" viewBox="0 0 200 200">
+                <path d="M100,100 L100,0 A100,100 0 0,1 195.1,69.1 Z" fill="#ffb3c6"/>
+                <path d="M100,100 L195.1,69.1 A100,100 0 0,1 158.8,180.9 Z" fill="#ffe5ec"/>
+                <path d="M100,100 L158.8,180.9 A100,100 0 0,1 41.2,180.9 Z" fill="#ffc2d1"/>
+                <path d="M100,100 L41.2,180.9 A100,100 0 0,1 4.9,69.1 Z" fill="#ffd6ff"/>
+                <path d="M100,100 L4.9,69.1 A100,100 0 0,1 100,0 Z" fill="#fff0f3"/>
+                
+                <text x="133" y="45" fill="#ff477e" font-size="16" font-weight="bold" transform="rotate(36, 133, 45)">1</text>
+                <text x="148" y="128" fill="#ff477e" font-size="16" font-weight="bold" transform="rotate(108, 148, 128)">2</text>
+                <text x="100" y="165" fill="#ff477e" font-size="16" font-weight="bold" transform="rotate(180, 100, 165)">3</text>
+                <text x="52" y="128" fill="#ff477e" font-size="16" font-weight="bold" transform="rotate(252, 52, 128)">4</text>
+                <text x="67" y="45" fill="#ff477e" font-size="16" font-weight="bold" transform="rotate(324, 67, 45)">5</text>
+                
+                <circle cx="100" cy="100" r="10" fill="white" stroke="#ff477e" stroke-width="3"/>
+            </svg>
+        </div>
+
+        <button class="btn" id="spin-btn" onclick="spinWheel()">Spin the Wheel! 🎲</button>
+
+        <div class="prize-list">
+            <div class="prize-item" id="item-1"><span class="prize-num">[ 1 ]</span> 1st Prize: Helen's Solo Trip Flight Ticket Sponsor by Jason! ($200 USD) ✈️🎫</div>
+            <div class="prize-item" id="item-2"><span class="prize-num">[ 2 ]</span> 2nd Prize: Helen's Solo Trip Hotel (1 Night) Sponsor by Jason! ($100 USD) 🏨✨</div>
+            <div class="prize-item" id="item-3"><span class="prize-num">[ 3 ]</span> 3rd Prize: Helen's Supermarket Shopping Sponsor by Jason! ($50 USD) 🛒🛍️</div>
+            <div class="prize-item" id="item-4"><span class="prize-num">[ 4 ]</span> 4th Prize: Ice Cream that Helen wants! Jason will buy it for you! 🍦❤️</div>
+            <div class="prize-item" id="item-5"><span class="prize-num">[ 5 ]</span> 5th Prize: Jason's Sexy Dance Performance! 🕺🔥💃</div>
+        </div>
+    </div>
+
+    <div class="popup" id="prize-popup">
+        <div class="close-x" onclick="closePopup()">✕</div>
+        
+        <h2 id="prize-title">👑 GRAND PRIZE UNLOCKED! 👑</h2>
+        <p id="popup-intro">You are the luckiest girl in the world! Your future husband Jason presents to you:</p>
+        
+        <div id="prize-text"></div>
+        
+        <p id="popup-instruction">📸 MATCH COMPLETED! Please take a screenshot of this screen and send it back to Jason right now to claim your ultimate birthday package! I love you so so much! ❤️</p>
+        
+        <button class="btn" id="popup-btn" onclick="closePopup()">Yay! Thank you, my handsome boy! 😘</button>
+    </div>
+
+    <script>
+        function createHearts() {
+            const body = document.body;
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.className = 'heart-particle';
+                heart.innerHTML = Math.random() > 0.5 ? '❤️' : '💖';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.fontSize = Math.random() * 15 + 15 + 'px';
+                heart.style.animationDuration = Math.random() * 3 + 4 + 's';
+                body.appendChild(heart);
+                setTimeout(() => { heart.remove(); }, 6000);
+            }, 600);
+        }
+        createHearts();
+
+        const prizesConfig = {
+            1: { title: "👑 GRAND PRIZE UNLOCKED! 👑", text: "1st Prize: Helen's Solo Trip Flight Ticket Sponsor by Jason! ($200 USD) ✈️🎫", centerAngle: 36, intro: "You are the luckiest girl in the world! Your future husband Jason presents to you:", inst: "📸 MATCH COMPLETED! Please take a screenshot of this screen and send it back to Jason right now to claim your ultimate birthday package! I love you so so much! ❤️", btn: "Yay! Thank you, my handsome boy! 😘" },
+            5: { title: "🎉 Round 1 Complete! 🎉", text: "5th Prize: Jason's Sexy Dance Performance! 🕺🔥💃", centerAngle: 324, intro: "Your handsomest boy Jason is going to give you:", inst: "Better capture this moment! 📸 Send this screenshot back to Jason to redeem your exclusive private performance! 🤭", btn: "Can't wait to see it! 😂" },
+            4: { title: "🎉 Prize Unlocked! 🎉", text: "4th Prize: Ice Cream that Helen wants! Jason will buy it for you! 🍦❤️", centerAngle: 252, intro: "Your sweet boy Jason is going to give you:", inst: "Yummm! 📸 Take a screenshot and show Jason which flavor you want to eat today! 🍧", btn: "Sweetest gift ever! 🍦" },
+            3: { title: "🎉 Round 2 Complete! 🎉", text: "3rd Prize: Helen's Supermarket Shopping Sponsor by Jason! ($50 USD) 🛒🛍️", centerAngle: 180, intro: "Your generous boy Jason is going to give you:", inst: "Shopping time! 📸 Take a screenshot to unlock Jason's credit card for your next grocery run! 💳", btn: "Let's go shopping! 🛍️" },
+            2: { title: "🎉 Prize Unlocked! 🎉", text: "2nd Prize: Helen's Solo Trip Hotel (1 Night) Sponsor by Jason! ($100 USD) 🏨✨", centerAngle: 108, intro: "Your sweet coordinator Jason is going to give you:", inst: "Vacation mode ON! 📸 Save this screenshot to claim a cozy night's stay on your next solo trip! 🛌", btn: "Thank you, babe! 🏨" }
+        };
+
+        let spinCount = parseInt(localStorage.getItem('helen_spin_count')) || 0;
+        let isAnimating = false;
+
+        function spinWheel() {
+            if (isAnimating) return;
+            isAnimating = true;
+            document.getElementById('spin-btn').disabled = true;
+
+            spinCount++;
+            localStorage.setItem('helen_spin_count', spinCount);
+
+            // 內定中獎數字順序：1次=5, 2次=3, 3次及之後=1
+            let targetNumber;
+            if (spinCount === 1) {
+                targetNumber = 5;
+            } else if (spinCount === 2) {
+                targetNumber = 3;
+            } else {
+                targetNumber = 1;
+            }
+
+            const targetPrize = prizesConfig[targetNumber];
+            const wheel = document.getElementById('wheel');
+
+            const targetRotation = (spinCount * 1800) + (360 - targetPrize.centerAngle); 
+            wheel.style.transform = `rotate(${targetRotation}deg)`;
+
+            // 4秒動畫結束，彈出對應內容
+            setTimeout(() => {
+                document.querySelectorAll('.prize-item').forEach(el => el.classList.remove('highlight-prize'));
+                document.getElementById(`item-${targetNumber}`).classList.add('highlight-prize');
+
+                // 將對應獎項的所有精美文字、標題注入彈窗中
+                document.getElementById('prize-title').innerHTML = targetPrize.title;
+                document.getElementById('popup-intro').innerHTML = targetPrize.intro;
+                document.getElementById('prize-text').innerText = targetPrize.text;
+                document.getElementById('popup-instruction').innerHTML = targetPrize.inst;
+                document.getElementById('popup-btn').innerText = targetPrize.btn;
+
+                document.getElementById('prize-popup').classList.add('show');
+                document.getElementById('overlay').classList.add('show');
+                isAnimating = false;
+            }, 4000);
+        }
+
+        function closePopup() {
+            document.getElementById('prize-popup').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+            
+            // 彈窗點選叉叉或按鈕後，底部旋轉按鈕立刻解鎖，並且可以無限制繼續抽！
+            document.getElementById('spin-btn').disabled = false;
+        }
+    </script>
+</body>
+</html>
